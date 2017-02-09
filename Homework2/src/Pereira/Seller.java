@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import javax.naming.SizeLimitExceededException;
+
 public class Seller implements Client
 {
 	private static final int MaxItems = 100;
@@ -50,7 +52,13 @@ public class Seller implements Client
 	    	int index = this.rand.nextInt(this.items.size());
 	    	String item = this.items.get(index);
 	    	
-	    	int listingID = server.submitItem(this.name(), item, this.rand.nextInt(100), this.rand.nextInt(100) + 100);  
+	    	int listingID = 0;
+			try {
+				listingID = server.submitItem(this.name(), item, this.rand.nextInt(100), this.rand.nextInt(100) + 100);
+			} catch (SizeLimitExceededException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}  
 	    	
 	    	if (listingID != -1)
 	    	{
