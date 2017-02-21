@@ -19,6 +19,7 @@ public class Simulation {
 	
 	public static Queue<Customer> orderList = new LinkedList<Customer>();
 	public static Queue<Customer> currCapacity = new LinkedList<Customer>();
+	public static Queue<Machine> machCapacity = new LinkedList<Machine>();	
 	public static Map<Customer, Boolean> completedOrder = new HashMap<Customer,Boolean>();
 	
 	public static Machine burgerDispenser;
@@ -81,11 +82,15 @@ public class Simulation {
 
 		// Start up machines
 		burgerDispenser = new Machine("BurgerDispenser", FoodType.burger, machineCapacity);
-		deepFryer = new Machine("DeepFryer", FoodType.fries, machineCapacity);
-		coffeeMachine = new Machine("coffeeMachine", FoodType.coffee, machineCapacity);
 		logEvent(SimulationEvent.machineStarting(burgerDispenser, FoodType.burger, machineCapacity));
-		logEvent(SimulationEvent.machineStarting(coffeeMachine, FoodType.coffee, machineCapacity));
+		
+		deepFryer = new Machine("DeepFryer", FoodType.fries, machineCapacity);
 		logEvent(SimulationEvent.machineStarting(deepFryer, FoodType.fries, machineCapacity));
+		
+		coffeeMachine = new Machine("coffeeMachine", FoodType.coffee, machineCapacity);
+		logEvent(SimulationEvent.machineStarting(coffeeMachine, FoodType.coffee, machineCapacity));
+		
+		
 
 
 		// Let cooks in
