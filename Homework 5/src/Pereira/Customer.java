@@ -64,7 +64,50 @@ public class Customer implements Runnable {
 		// YOUR CODE GOES HERE...
 		Simulation.logEvent(SimulationEvent.customerStarting(this));
 		
-		synchronized(Simulation)
+		synchronized(Simulation.currCapacity){
+			while(!(Simulation.currCapacity.size() < Simulation.events.get(0).simParams[2])){
+				try {
+					Simulation.currCapacity.wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+			
+			Simulation.currCapacity.add(this);
+			Simulation.logEvent(SimulationEvent.customerEnteredCoffeeShop(this));
+			Simulation.currCapacity.notifyAll();
+		}
+		
+		synchronized(Simulation.orderList){
+			Simulation.orderList.add(this);
+			Simulation.logEvent(SimulationEvent.customerPlacedOrder(this, this.order, this.orderNum));
+			Simulation.orderList.notifyAll();
+		}
+		//initialize the persons order as not completed
+		synchronized(Simulation.completedOrder){
+			Simulation.completedOrder.put(this, false);
+		}
+		
+		synchronized(Simulation.completedOrder){
+			while(!(Simulation.completedOrder.get(this))){
+				try {
+					Simulation.completedOrder.wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			Simulation.logEvent(SimulationEvent.customerReceivedOrder(this, this.order, this.orderNum));
+			Simulation.completedOrder.notifyAll();
+		}
+		synchronized(Simulation.currCapacity){
+			Simulation.currCapacity.remove(this);
+			Simulation.logEvent(SimulationEvent.customerLeavingCoffeeShop(this));
+			Simulation.currCapacity.notifyAll();
+		}
 		
 
 	}
