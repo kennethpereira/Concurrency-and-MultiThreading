@@ -11,6 +11,7 @@ public class Simulation
     {                
         int nrSellers = 50;
         int nrBidders = 20;
+        int moneySpent = 0;
         
         Thread[] sellerThreads = new Thread[nrSellers];
         Thread[] bidderThreads = new Thread[nrBidders];
@@ -59,7 +60,9 @@ public class Simulation
         {
             try
             {
-                sellerThreads[i].join();
+                bidderThreads[i].join();
+                moneySpent += bidders[i].cashSpent();
+                
             }
             catch (InterruptedException e)
             {
@@ -68,6 +71,9 @@ public class Simulation
         }
         
         // TODO: Add code as needed to debug
+        
+        System.out.println("Cash spent : " +moneySpent);
+        System.out.println("Total revenue : " +AuctionServer.getInstance().revenue());
         
     }
 }

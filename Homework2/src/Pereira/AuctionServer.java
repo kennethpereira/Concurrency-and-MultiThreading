@@ -44,11 +44,15 @@ public class AuctionServer {
 	private int revenue = 0;
 
 	public int soldItemsCount() {
-		return this.soldItemsCount;
+		synchronized (instanceLock) {
+			return this.soldItemsCount;
+		}
 	}
 
 	public int revenue() {
-		return this.revenue;
+		synchronized (instanceLock) {
+			return this.revenue;
+		}
 	}
 
 	/**
@@ -130,8 +134,7 @@ public class AuctionServer {
 	 *         successfully, otherwise -1
 	 * @throws SizeLimitExceededException
 	 */
-	public int submitItem(String sellerName, String itemName, int lowestBiddingPrice, int biddingDurationMs)
-			throws SizeLimitExceededException {
+	public int submitItem(String sellerName, String itemName, int lowestBiddingPrice, int biddingDurationMs) {
 		// TODO: IMPLEMENT CODE HERE
 		// Some reminders:
 		// Make sure there's room in the auction site.
@@ -140,34 +143,25 @@ public class AuctionServer {
 		// this one.
 		// Don't forget to increment the number of things the seller has
 		// currently listed.
-		if (sellerName.length() > 0 && lowestBiddingPrice > 0 && biddingDurationMs > 0) {
-			synchronized (instanceLock) {
-				if (itemsUpForBidding.size() <= serverCapacity && (!itemsPerSeller.containsKey(sellerName)
-						|| itemsPerSeller.get(sellerName) < maxSellerItems)) {
 
-					lastListingID++;
+		// return -1;
+		synchronized (instanceLock) {
 
-					Item i = new Item(sellerName, itemName, lastListingID, lowestBiddingPrice, biddingDurationMs);
-					itemsUpForBidding.add(i);
-					itemsAndIDs.put(lastListingID, i);
-
-					highestBids.put(lastListingID, lowestBiddingPrice);
-
-					if (!itemsPerSeller.containsKey(sellerName)) {
-						itemsPerSeller.put(sellerName, 1);
-					} else {
-						itemsPerSeller.put(sellerName, itemsPerSeller.get(sellerName) + 1);
-					}
-
-					return lastListingID;
-
-				} else {
-					throw new SizeLimitExceededException("Server capacity capacity cannot be more" + serverCapacity);
-				}
+			if (!itemsPerSeller.containsKey(sellerName)) {
+				itemsPerSeller.put(sellerName, 0);
 			}
-		} else {
-			throw new IllegalArgumentException("Check the parameters submitted");
 
+			if (itemsUpForBidding.size() < serverCapacity)
+				if (itemsPerSeller.containsKey(sellerName) && itemsPerSeller.get(sellerName) < maxSellerItems) {
+					lastListingID++;
+					Item item = new Item(sellerName, itemName, lastListingID, lowestBiddingPrice, biddingDurationMs);
+					itemsUpForBidding.add(item);
+					itemsAndIDs.put(lastListingID, item);
+					highestBids.put(lastListingID, lowestBiddingPrice);
+					itemsPerSeller.put(sellerName, itemsPerSeller.get(sellerName) + 1);
+					return lastListingID;
+				}
+			return -1;
 		}
 	}
 
@@ -288,17 +282,20 @@ public class AuctionServer {
 
 						itemsPerSeller.put(name, count - 1);
 
-						if (highestBidders.containsKey(listingID)) { 
-																	
+						if (highestBidders.containsKey(listingID)) {
+
 							String name1 = highestBidders.get(listingID);
 
-							if (bidderName.equalsIgnoreCase(name1)) { 
+							if (bidderName.equalsIgnoreCase(name1)) {
 								
+								revenue = revenue + highestBids.get(listingID);
+								soldItemsCount = soldItemsCount + 1;
 								return 1;
-							} else { 
-								return  3;
+								
+							} else {
+								return 3;
 							}
-						} else { 
+						} else {
 							return 3;
 						}
 
@@ -322,16 +319,16 @@ public class AuctionServer {
 	 */
 	public int itemPrice(int listingID) {
 		// TODO: IMPLEMENT CODE HERE
-		if (listingID >= 0){
-			synchronized(instanceLock){
+		if (listingID >= 0) {
+			synchronized (instanceLock) {
 				Item item = itemsAndIDs.get(listingID);
-				
-				if(item !=null){
-					int price = highestBids.get(item);
+
+				if (item != null) {
+					int price = highestBids.get(listingID);
 					return price;
 				}
 			}
-		}else {
+		} else {
 			throw new IllegalArgumentException("Check the parameters submitted");
 		}
 		return -1;
@@ -347,24 +344,22 @@ public class AuctionServer {
 	 */
 	public Boolean itemUnbid(int listingID) {
 		// TODO: IMPLEMENT CODE HERE
-		if (listingID >= 0){
-			synchronized(instanceLock){
+		if (listingID >= 0) {
+			synchronized (instanceLock) {
 				Item item = itemsAndIDs.get(listingID);
-				
-				if(item !=null){
-					
-					if(highestBidders.containsKey(listingID)){
+
+				if (item != null) {
+
+					if (highestBidders.containsKey(listingID)) {
 						return false;
+					} else {
+						return true;
 					}
-					else {
-						return true; 
-					}
-				}
-				else {
+				} else {
 					return true;
 				}
 			}
-		}else {
+		} else {
 			throw new IllegalArgumentException("Check the parameters submitted");
 		}
 	}

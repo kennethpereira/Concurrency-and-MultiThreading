@@ -53,12 +53,7 @@ public class Seller implements Client
 	    	String item = this.items.get(index);
 	    	
 	    	int listingID = 0;
-			try {
-				listingID = server.submitItem(this.name(), item, this.rand.nextInt(100), this.rand.nextInt(100) + 100);
-			} catch (SizeLimitExceededException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}  
+			listingID = server.submitItem(this.name(), item, this.rand.nextInt(100), this.rand.nextInt(100) + 100);  
 	    	
 	    	if (listingID != -1)
 	    	{
