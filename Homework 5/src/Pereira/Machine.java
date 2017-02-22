@@ -63,12 +63,12 @@ public class Machine {
 	//THIS MIGHT BE A USEFUL METHOD TO HAVE AND USE BUT IS JUST ONE IDEA
 	private class CookAnItem implements Runnable {
 		
-		Cook name;
+		Cook cook;
 		int orderNum;
 		
-		public CookAnItem(Cook name, int orderNum) {
+		public CookAnItem(Cook cook, int orderNum) {
 			// TODO Auto-generated constructor stub
-			this.name = name;
+			this.cook = cook;
 			this.orderNum = orderNum;
 		}
 
@@ -94,18 +94,18 @@ public class Machine {
 				Simulation.logEvent(SimulationEvent.machineCookingFood(Machine.this, machineFoodType));
 				Thread.sleep(machineFoodType.cookTimeMS);
 				Simulation.logEvent(SimulationEvent.machineDoneFood(Machine.this, machineFoodType));
-				Simulation.logEvent(SimulationEvent.cookFinishedFood(name, machineFoodType,orderNum));
+				Simulation.logEvent(SimulationEvent.cookFinishedFood(cook, machineFoodType,orderNum));
 				synchronized(foodList){
 					foodList.remove();
 					foodList.notifyAll();	
 				}
 				synchronized(name.finishedFood){
-					name.finishedFood.add(machineFoodType);
-					name.finishedFood.notifyAll();	
+					cook.finishedFood.add(machineFoodType);
+					cook.finishedFood.notifyAll();	
 				}
 				
 			} catch(InterruptedException e) { }
-		}
+		} 
 	}
  
 
