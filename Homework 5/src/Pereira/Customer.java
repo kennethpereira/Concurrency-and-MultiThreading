@@ -18,7 +18,7 @@ public class Customer implements Runnable {
 	private final int priority;
 
 	private static int runningCounter = 0;
-	private static Random rand;
+	private static Random rand=new Random();;
 
 	/**
 	 * You can feel free modify this constructor. It must take at least the name

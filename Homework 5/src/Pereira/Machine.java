@@ -99,7 +99,7 @@ public class Machine {
 					foodList.remove();
 					foodList.notifyAll();	
 				}
-				synchronized(name.finishedFood){
+				synchronized(cook.finishedFood){
 					cook.finishedFood.add(machineFoodType);
 					cook.finishedFood.notifyAll();	
 				}

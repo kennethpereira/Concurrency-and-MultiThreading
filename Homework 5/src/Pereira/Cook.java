@@ -2,6 +2,8 @@ package Pereira;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 
 import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
@@ -14,7 +16,7 @@ import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader.Array;
 public class Cook implements Runnable {
 	private final String name;
 	private Customer currentCustomer;
-
+	public List<Food> finishedFood = new LinkedList<Food>();
 	/**
 	 * You can feel free modify this constructor. It must take at least the
 	 * name, but may take other parameters if you would find adding them useful.
@@ -43,18 +45,6 @@ public class Cook implements Runnable {
 	@SuppressWarnings("unchecked")
 	public void run() {
 
-		Customer[] cust = (Customer[]) Simulation.orderList.toArray();
-		Arrays.sort(cust, new Comparator<Customer>() {
-			public int compare(Customer o1, Customer o2) {
-				if (o1.getPriority() > o2.getPriority()) {
-					return o1.getPriority();
-				} else {
-					return o2.getPriority();
-				}
-			}
-		});
-
-		Simulation.orderList = (Queue<Customer>) Arrays.asList(cust);
 		Simulation.logEvent(SimulationEvent.cookStarting(this));
 		try {
 			while (true) {
@@ -68,14 +58,66 @@ public class Cook implements Runnable {
 					// Simulation.orderList.s
 
 					currentCustomer = Simulation.orderList.remove();
+					System.out.println("This is customer priority ---->"+currentCustomer.getPriority());
 					Simulation.logEvent(SimulationEvent.cookReceivedOrder(this, currentCustomer.getOrder(),
 							currentCustomer.getOrderNum()));
 					Simulation.orderList.notifyAll();
 				}
 				
+				for(int index = 0; index < currentCustomer.getOrder().size(); index++){
+					Food currFood = currentCustomer.getOrder().get(index);
+					if(currFood.equals(FoodType.burger)){
+						synchronized(Simulation.burgerDispenser.foodList){
+							while(!(Simulation.burgerDispenser.foodList.size() < Simulation.burgerDispenser.capacity)){
+								Simulation.burgerDispenser.foodList.wait();
+							}
+							Simulation.logEvent(SimulationEvent.cookStartedFood(this, FoodType.burger , currentCustomer.getOrderNum()));
+							Simulation.burgerDispenser.makeFood(this, currentCustomer.getOrderNum());
+							Simulation.burgerDispenser.foodList.notifyAll();
+
+						}
+						
+					}else if(currFood.equals(FoodType.fries)){
+						synchronized(Simulation.deepFryer.foodList){
+							while(!(Simulation.deepFryer.foodList.size() < Simulation.deepFryer.capacity)){
+								Simulation.deepFryer.foodList.wait();
+							}
+							Simulation.logEvent(SimulationEvent.cookStartedFood(this, FoodType.fries , currentCustomer.getOrderNum()));
+							Simulation.deepFryer.makeFood(this,currentCustomer.getOrderNum());
+							Simulation.deepFryer.foodList.notifyAll();
+							
+						}
+						
+					}else{
+						synchronized(Simulation.coffeeMachine.foodList){
+							while(!(Simulation.coffeeMachine.foodList.size() < Simulation.coffeeMachine.capacity)){
+								Simulation.coffeeMachine.foodList.wait();
+							}
+							Simulation.logEvent(SimulationEvent.cookStartedFood(this, FoodType.coffee , currentCustomer.getOrderNum()));
+							Simulation.coffeeMachine.makeFood(this,currentCustomer.getOrderNum());
+							Simulation.coffeeMachine.foodList.notifyAll();
+							
+						}
+					}
+				}
+				synchronized(finishedFood){
+					while(!(finishedFood.size() == currentCustomer.getOrder().size())){
+						finishedFood.wait();
+						finishedFood.notifyAll();
+					}
+				}
+				Simulation.logEvent(SimulationEvent.cookCompletedOrder(this, currentCustomer.getOrderNum()));
+				
+				synchronized(Simulation.completedOrder){
+					Simulation.completedOrder.put(currentCustomer, true);
+					Simulation.completedOrder.notifyAll();
+				}
+				finishedFood = new LinkedList<Food>();
+			
+			}
 				
 
-			}
+			
 		} catch (InterruptedException e) {
 			// This code assumes the provided code in the Simulation class
 			// that interrupts each cook thread when all customers are done.

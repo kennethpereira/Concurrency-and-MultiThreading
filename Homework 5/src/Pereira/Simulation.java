@@ -1,11 +1,13 @@
 package Pereira;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Random;
 
@@ -17,7 +19,16 @@ public class Simulation {
 	// List to track simulation events during simulation
 	public static List<SimulationEvent> events;  
 	
-	public static Queue<Customer> orderList = new LinkedList<Customer>();
+	//public static Queue<Customer> orderList = new LinkedList<Customer>();
+	public static Comparator<Customer> comp = new Comparator<Customer>(){
+		
+		public int compare(Customer c1, Customer c2){
+			return (int) (c1.getPriority() - c2.getPriority());
+		}
+	};
+	
+	public static PriorityQueue<Customer> orderList = new PriorityQueue<Customer>(10,comp);
+	
 	public static Queue<Customer> currCapacity = new LinkedList<Customer>();
 	public static Queue<Machine> machCapacity = new LinkedList<Machine>();	
 	public static Map<Customer, Boolean> completedOrder = new HashMap<Customer,Boolean>();
